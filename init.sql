@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS personal (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    position VARCHAR(100) NOT NULL
+);

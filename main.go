@@ -1,32 +1,62 @@
 package main
 
 import (
+	"context"
+	database "copr/Database"
 	httppack "copr/httpPack"
+	"copr/simple_sql"
 	"copr/worker"
-	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {
-	// ctx := context.Background()
 
-	// conn, err := database.ConnectDataBase(ctx)
-	// if err != nil {
-	// 	fmt.Println("error connect database", err)
-	// }
+	ctx := context.Background()
 
-	// if err := conn.Ping(ctx); err != nil {
-	// 	fmt.Println("no signal", err)
-	// 	return
-	// }
-	// fmt.Println("database connect complete")
+	log.Println("Starting application...")
+	log.Printf("Database URL: %s", os.Getenv("CONN_STRING"))
 
-	fmt.Println("server start")
+	var conn *pgx.Conn
+	var err error
 
-	worker := worker.NewWorkers()
-	httpHandlers := httppack.NewHTTPHandlers(worker)
+	for i := 0; i < 5; i++ {
+		conn, err = database.ConnectDataBase(ctx)
+		if err == nil {
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+
+	if err := conn.Ping(ctx); err != nil {
+		log.Fatal("Database ping failed:", err)
+	}
+	defer func() {
+		conn.Close(ctx)
+		log.Println("Database connection closed")
+	}()
+
+	log.Println("Database connection established")
+
+	if err := simple_sql.CreateTable(ctx, conn); err != nil {
+		log.Fatal("Failed to create table:", err)
+	}
+	log.Println("Table 'personal' created/verified")
+
+	log.Println("Server starting...")
+
+	workers := worker.NewWorkers()
+	httpHandlers := httppack.NewHTTPHandlers(workers, conn)
 	httpServer := httppack.NewHTTPServer(*httpHandlers)
 
 	if err := httpServer.ConnectServer(); err != nil {
-		fmt.Println("failed to start http server:", err)
+		log.Fatal("Failed to start HTTP server:", err)
 	}
 }

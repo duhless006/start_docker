@@ -8,6 +8,8 @@ RUN go mod tidy
 
 RUN go build -o /app/exe main.go
 
-EXPOSE 8080
+RUN /app/exe --help 2>/dev/null || echo "Build successful"
 
-CMD ["/app/exe"]
+EXPOSE 5050
+
+CMD ["/app/exe"] 

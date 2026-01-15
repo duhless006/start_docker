@@ -24,7 +24,7 @@ func (h *HTTPServer) ConnectServer() error {
 	router.Path("/employees").Methods("GET").HandlerFunc(h.httpHandlers.GetWorkerHandler)
 	router.Path("/employees/{id}").Methods("DELETE").HandlerFunc(h.httpHandlers.DeleteWorkerHandler)
 
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	if err := http.ListenAndServe(":5050", router); err != nil {
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
