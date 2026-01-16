@@ -16,7 +16,11 @@
 ## удаляем все контейнеры docker 
     docker container prune
 
+## сборка проекта compose
+    docker-compose up --build 
 
+## stop compose
+    docker-compose down -v
 
 
 
